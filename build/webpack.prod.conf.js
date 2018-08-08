@@ -78,45 +78,52 @@ const webpackConfig = merge(baseWebpackConfig, {
     new webpack.HashedModuleIdsPlugin(),
     // enable scope hoisting
     new webpack.optimize.ModuleConcatenationPlugin(),
-    // split element-ui from vendor for the page using in order to reduce volume
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor-home',
-      chunks: ['home'],
-      minChunks (module) {
-        return (
-          module.resource &&
-          /\.js$/.test(module.resource) &&
-          module.resource.indexOf(path.join(__dirname, '../node_modules')) !== -1
-        )
-      }
-    }),
-    // split iview from vendor for the page using in order to reduce volume
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor-demo',
-      chunks: ['demo'],
-      minChunks (module) {
-        return (
-          module.resource &&
-          /\.js$/.test(module.resource) &&
-          module.resource.indexOf(path.join(__dirname, '../node_modules')) !== -1
-        )
-      }
-    }),
-    // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
-      chunks: ['vendor-demo', 'vendor-home']
+      minChunks (module) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor-home',
+      chunks: ['vendor'],
+      minChunks: function (module, count) {
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(path.join(__dirname, '../node_modules')) === 0 &&
+          module.resource.indexOf('element-ui') !== -1
+        )
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor-demo',
+      chunks: ['vendor'],
+      minChunks: function (module, count) {
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(path.join(__dirname, '../node_modules')) === 0 &&
+          module.resource.indexOf('iview') !== -1
+        )
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common-api',
+      chunks: ['home', 'demo'],
+      minChunks: Infinity
     }),
     // extract webpack runtime and module manifest to its own file in order to
     // prevent vendor hash from being updated whenever app bundle is updated
     new webpack.optimize.CommonsChunkPlugin({
       name: 'manifest',
-      chunks: ['vendor']
-    }),
-    // 提取公共js模块
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'common-api',
-      chunks: ['home', 'demo'], // 要指定完全，即有多少的页面入口模块，就要指定多少
       minChunks: Infinity
     }),
     // This instance extracts shared chunks from code splitted chunks and bundles them

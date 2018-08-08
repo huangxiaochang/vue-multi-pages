@@ -126,53 +126,54 @@ webpack搭建多页面应用的方法和步骤：
 
 7.从vendor中分离不同页面中引用的第三方库：
 	1.修改webpack.prod.conf.js:
-		去掉
 		new webpack.optimize.CommonsChunkPlugin({
-	      name: 'vendor',
-	      minChunks: Infinity
-	    })
-	    增加
-	    // split element-ui from vendor for the page using in order to reduce volume
-	    new webpack.optimize.CommonsChunkPlugin({
-	      name: 'vendor-home',
-	      chunks: ['home'],  // 这里对应每一个页面的入口文件块
-	      minChunks (module) {
-	        return (
-	          module.resource &&
-	          /\.js$/.test(module.resource) &&
-	          module.resource.indexOf(path.join(__dirname, '../node_modules')) !== -1
-	        )
-	      }
-	    }),
-	    // split iview from vendor for the page using in order to reduce volume
-	    new webpack.optimize.CommonsChunkPlugin({
-	      name: 'vendor-demo',
-	      chunks: ['demo'], // 这里对应每一个页面的入口文件块
-	      minChunks (module) {
-	        return (
-	          module.resource &&
-	          /\.js$/.test(module.resource) &&
-	          module.resource.indexOf(path.join(__dirname, '../node_modules')) !== -1
-	        )
-	      }
-	    }),
-	    // split vendor js into its own file， 从vendor-demo，vendor-home块中(这两个块是上面提取的，注意名字要对应)提取相同的内容到vendor块中，
-	    new webpack.optimize.CommonsChunkPlugin({
-	      name: 'vendor',
-	      chunks: ['vendor-demo', 'vendor-home']
-	    }),
-	    // extract webpack runtime and module manifest to its own file in order to
-	    // prevent vendor hash from being updated whenever app bundle is updated
-	    new webpack.optimize.CommonsChunkPlugin({
-	      name: 'manifest',
-	      chunks: ['vendor']
-	    }),
-	    // 提取公共js模块
-	    new webpack.optimize.CommonsChunkPlugin({
-	      name: 'common-api',
-	      chunks: ['home', 'demo'], // 要指定完全，即有多少的页面入口模块，就要指定多少
-	      minChunks: Infinity
-	    }),
+      name: 'vendor',
+      minChunks (module) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor-home',
+      chunks: ['vendor'],
+      minChunks: function (module, count) {
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(path.join(__dirname, '../node_modules')) === 0 &&
+          module.resource.indexOf('element-ui') !== -1
+        )
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor-demo',
+      chunks: ['vendor'],
+      minChunks: function (module, count) {
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(path.join(__dirname, '../node_modules')) === 0 &&
+          module.resource.indexOf('iview') !== -1
+        )
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common-api',
+      chunks: ['home', 'demo'],
+      minChunks: Infinity
+    }),
+    // extract webpack runtime and module manifest to its own file in order to
+    // prevent vendor hash from being updated whenever app bundle is updated
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'manifest',
+      minChunks: Infinity
+    }),
 
 	    要按顺序进行添加
 

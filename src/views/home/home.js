@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Home from './home.vue'
 import VueRouter from 'vue-router'
 import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
+// import 'element-ui/lib/theme-chalk/index.css'
 import $ from '@/common/index.js'
 const HomeDemo = resolve => require(['./home_demo.vue'], resolve)
 
